@@ -103,6 +103,17 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, task);
   }
 
+// Reto 3: Exportar datos
+  if (req.method === "GET" && req.url === "/api/export") {
+    const tenantTasks = tasks.filter((t) => t.tenantId === tenant.id);
+    return send(res, 200, {
+      company: tenant.company,
+      plan: tenant.plan,
+      exportedAt: new Date().toISOString(),
+      tasks: tenantTasks
+    });
+  }
+
   send(res, 404, { error: "Ruta no encontrada" });
 });
 
