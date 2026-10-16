@@ -12,6 +12,7 @@ const PLANS = {
 };
 
 // "Base de datos" en memoria
+const rateLimits = {}; // tenantId -> Array de timestamps (ms)
 const tenants = {}; // apiKey -> { id, company, plan }
 const tasks = [];   // { id, tenantId, title, done }
 
@@ -51,6 +52,21 @@ const server = http.createServer(async (req, res) => {
   // A partir de aquí, toda ruta requiere una llave de API válida
   const tenant = authenticate(req);
   if (!tenant) return send(res, 401, { error: "Falta o es inválida la cabecera x-api-key" });
+
+// Reto 4: Límite de peticiones (Rate Limit - máx 30 por minuto)
+  const now = Date.now();
+  if (!rateLimits[tenant.id]) {
+    rateLimits[tenant.id] = [];
+  }
+  // Filtrar peticiones conservando solo las hechas en los últimos 60 segundos
+  rateLimits[tenant.id] = rateLimits[tenant.id].filter((time) => now - time < 60000);
+
+  if (rateLimits[tenant.id].length >= 30) {
+    return send(res, 429, { error: "Demasiadas peticiones. Intenta de nuevo en un minuto." });
+  }
+
+  // Registrar la petición actual
+  rateLimits[tenant.id].push(now);
 
   // 2) Listar SOLO las tareas del inquilino que hace la petición
   if (req.method === "GET" && req.url === "/api/tasks") {
