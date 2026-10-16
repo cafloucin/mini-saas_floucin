@@ -88,6 +88,21 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+// Reto 2: Completar tareas
+  const matchPatchTask = req.url.match(/^\/api\/tasks\/(\d+)$/);
+  if (req.method === "PATCH" && matchPatchTask) {
+    const taskId = parseInt(matchPatchTask[1], 10);
+    // Buscar la tarea que coincida con el ID Y que pertenezca al inquilino autenticado
+    const task = tasks.find((t) => t.id === taskId && t.tenantId === tenant.id);
+
+    if (!task) {
+      return send(res, 404, { error: "Tarea no encontrada" });
+    }
+
+    task.done = true;
+    return send(res, 200, task);
+  }
+
   send(res, 404, { error: "Ruta no encontrada" });
 });
 
