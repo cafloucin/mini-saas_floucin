@@ -78,6 +78,16 @@ const server = http.createServer(async (req, res) => {
     return send(res, 200, { company: tenant.company, plan: tenant.plan, used, limit: PLANS[tenant.plan].maxTasks });
   }
 
+// Reto 1: Mejorar de plan
+  if (req.method === "POST" && req.url === "/api/upgrade") {
+    tenant.plan = "pro";
+    return send(res, 200, {
+      company: tenant.company,
+      plan: tenant.plan,
+      limit: PLANS[tenant.plan].maxTasks,
+    });
+  }
+
   send(res, 404, { error: "Ruta no encontrada" });
 });
 
